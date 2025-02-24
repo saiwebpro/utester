@@ -54,6 +54,12 @@
         .error {
             color: red;
         }
+        img {
+            max-width: 100px;
+            max-height: 100px;
+            display: block;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -86,14 +92,20 @@
                         let h1Tags = doc.querySelectorAll('h1');
                         let h1Count = h1Tags.length;
                         let imgTags = doc.querySelectorAll('img');
-                        let imgWithoutAlt = [...imgTags].filter(img => !img.alt).length;
+                        let imgWithoutAlt = [...imgTags].filter(img => !img.alt);
+                        let imgWithoutAltCount = imgWithoutAlt.length;
+                        let favicon = doc.querySelector("link[rel='icon']") ? doc.querySelector("link[rel='icon']").href : 'Not found';
+                        
+                        let imgList = imgWithoutAlt.map(img => `<img src="${img.src}" alt="Missing Alt">`).join('');
                         
                         $('#results').html(`
                             <h2>SEO Analysis Results</h2>
                             <p><strong>Title:</strong> ${title}</p>
                             <p><strong>Meta Description:</strong> ${metaDesc}</p>
                             <p><strong>H1 Tags Count:</strong> ${h1Count}</p>
-                            <p><strong>Images Without Alt Text:</strong> ${imgWithoutAlt}</p>
+                            <p><strong>Images Without Alt Text:</strong> ${imgWithoutAltCount}</p>
+                            <div>${imgList}</div>
+                            <p><strong>Favicon:</strong> ${favicon !== 'Not found' ? `<img src="${favicon}" alt="Favicon">` : 'Not found'}</p>
                         `);
                     })
                     .catch(() => {
