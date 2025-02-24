@@ -6,6 +6,55 @@
     <title>On-Page SEO Analysis Tool</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 400px;
+        }
+        h1 {
+            color: #333;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #28a745;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #218838;
+        }
+        #results {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -26,26 +75,30 @@
                 
                 $('#results').html('<p>Fetching data...</p>');
                 
-                $.get(url, function(data) {
-                    let doc = new DOMParser().parseFromString(data, 'text/html');
-                    
-                    let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'Not found';
-                    let metaDesc = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'Not found';
-                    let h1Tags = doc.querySelectorAll('h1');
-                    let h1Count = h1Tags.length;
-                    let imgTags = doc.querySelectorAll('img');
-                    let imgWithoutAlt = [...imgTags].filter(img => !img.alt).length;
-                    
-                    $('#results').html(`
-                        <h2>SEO Analysis Results</h2>
-                        <p><strong>Title:</strong> ${title}</p>
-                        <p><strong>Meta Description:</strong> ${metaDesc}</p>
-                        <p><strong>H1 Tags Count:</strong> ${h1Count}</p>
-                        <p><strong>Images Without Alt Text:</strong> ${imgWithoutAlt}</p>
-                    `);
-                }).fail(function() {
-                    $('#results').html('<p>Failed to fetch data. Make sure the URL is accessible.</p>');
-                });
+                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let parser = new DOMParser();
+                        let doc = parser.parseFromString(data.contents, 'text/html');
+                        
+                        let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'Not found';
+                        let metaDesc = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'Not found';
+                        let h1Tags = doc.querySelectorAll('h1');
+                        let h1Count = h1Tags.length;
+                        let imgTags = doc.querySelectorAll('img');
+                        let imgWithoutAlt = [...imgTags].filter(img => !img.alt).length;
+                        
+                        $('#results').html(`
+                            <h2>SEO Analysis Results</h2>
+                            <p><strong>Title:</strong> ${title}</p>
+                            <p><strong>Meta Description:</strong> ${metaDesc}</p>
+                            <p><strong>H1 Tags Count:</strong> ${h1Count}</p>
+                            <p><strong>Images Without Alt Text:</strong> ${imgWithoutAlt}</p>
+                        `);
+                    })
+                    .catch(() => {
+                        $('#results').html('<p class="error">Failed to fetch data. Make sure the URL is accessible.</p>');
+                    });
             });
         });
     </script>
