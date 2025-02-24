@@ -3,75 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Content Verifier</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        input, button, textarea { width: 90%; margin: 10px; padding: 10px; font-size: 16px; }
-        .result { margin-top: 20px; text-align: left; max-width: 800px; margin: auto; }
-        .missing { color: red; font-weight: bold; }
-        .found { color: green; }
-    </style>
+    <title>On-Page SEO Analysis Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-
-    <h2>Website UI & Content Verifier</h2>
-
-    <input type="text" id="websiteURL" placeholder="Enter website URL (e.g. https://example.com)">
-    <button onclick="fetchWebsiteContent()">Fetch Website Content</button>
-
-    <h3>Paste Expected Content:</h3>
-    <textarea id="expectedContent" rows="5" placeholder="Paste document text here..."></textarea>
-
-    <button onclick="compareContent()">Compare Content</button>
-
-    <div class="result">
-        <h3>Results:</h3>
-        <p id="comparisonResults"></p>
+    <div class="container">
+        <h1>On-Page SEO Analysis Tool</h1>
+        <input type="text" id="urlInput" placeholder="Enter website URL">
+        <button id="analyzeBtn">Analyze</button>
+        <div id="results"></div>
     </div>
 
     <script>
-        let websiteText = "";
-
-        async function fetchWebsiteContent() {
-            let url = document.getElementById("websiteURL").value;
-            if (!url) {
-                alert("Please enter a valid URL");
-                return;
-            }
-
-            try {
-                let response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                let data = await response.json();
-                let parser = new DOMParser();
-                let doc = parser.parseFromString(data.contents, "text/html");
-
-                // Extract visible text
-                websiteText = doc.body.innerText;
-                alert("Website content fetched successfully!");
-            } catch (error) {
-                alert("Error fetching website content. Some websites block direct access.");
-                console.error(error);
-            }
-        }
-
-        function compareContent() {
-            let expectedText = document.getElementById("expectedContent").value;
-            let resultElement = document.getElementById("comparisonResults");
-
-            if (!websiteText) {
-                alert("Please fetch the website content first!");
-                return;
-            }
-
-            let missingContent = expectedText.split("\n").filter(line => !websiteText.includes(line.trim()));
-
-            if (missingContent.length > 0) {
-                resultElement.innerHTML = "<span class='missing'>Missing Content:</span><br>" + missingContent.join("<br>");
-            } else {
-                resultElement.innerHTML = "<span class='found'>All expected content is found on the website!</span>";
-            }
-        }
+        $(document).ready(function() {
+            $('#analyzeBtn').click(function() {
+                let url = $('#urlInput').val().trim();
+                if (url === '') {
+                    alert('Please enter a URL');
+                    return;
+                }
+                
+                $('#results').html('<p>Fetching data...</p>');
+                
+                $.get(url, function(data) {
+                    let doc = new DOMParser().parseFromString(data, 'text/html');
+                    
+                    let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'Not found';
+                    let metaDesc = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'Not found';
+                    let h1Tags = doc.querySelectorAll('h1');
+                    let h1Count = h1Tags.length;
+                    let imgTags = doc.querySelectorAll('img');
+                    let imgWithoutAlt = [...imgTags].filter(img => !img.alt).length;
+                    
+                    $('#results').html(`
+                        <h2>SEO Analysis Results</h2>
+                        <p><strong>Title:</strong> ${title}</p>
+                        <p><strong>Meta Description:</strong> ${metaDesc}</p>
+                        <p><strong>H1 Tags Count:</strong> ${h1Count}</p>
+                        <p><strong>Images Without Alt Text:</strong> ${imgWithoutAlt}</p>
+                    `);
+                }).fail(function() {
+                    $('#results').html('<p>Failed to fetch data. Make sure the URL is accessible.</p>');
+                });
+            });
+        });
     </script>
-
 </body>
 </html>
