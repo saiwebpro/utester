@@ -92,11 +92,9 @@
                         let h1Tags = doc.querySelectorAll('h1');
                         let h1Count = h1Tags.length;
                         let imgTags = doc.querySelectorAll('img');
-                        let imgWithoutAlt = [...imgTags].filter(img => !img.alt);
-                        let imgWithoutAltCount = imgWithoutAlt.length;
+                        let imgWithoutAltCount = [...imgTags].filter(img => !img.alt).length;
                         let favicon = doc.querySelector("link[rel='icon']") ? doc.querySelector("link[rel='icon']").href : 'Not found';
-                        
-                        let imgList = imgWithoutAlt.map(img => `<img src="${img.src}" alt="Missing Alt">`).join('');
+                        let structuredData = doc.querySelector('script[type="application/ld+json"]') ? doc.querySelector('script[type="application/ld+json"]').innerText : 'Not found';
                         
                         $('#results').html(`
                             <h2>SEO Analysis Results</h2>
@@ -104,8 +102,8 @@
                             <p><strong>Meta Description:</strong> ${metaDesc}</p>
                             <p><strong>H1 Tags Count:</strong> ${h1Count}</p>
                             <p><strong>Images Without Alt Text:</strong> ${imgWithoutAltCount}</p>
-                            <div>${imgList}</div>
                             <p><strong>Favicon:</strong> ${favicon !== 'Not found' ? `<img src="${favicon}" alt="Favicon">` : 'Not found'}</p>
+                            <p><strong>Structured Data:</strong> <pre>${structuredData}</pre></p>
                         `);
                     })
                     .catch(() => {
