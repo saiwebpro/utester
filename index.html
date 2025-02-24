@@ -3,45 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website UI & Responsiveness Tester</title>
+    <title>Website Content Verifier</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        input, button { margin: 10px; padding: 10px; font-size: 16px; }
-        .viewport-buttons button { margin: 5px; padding: 10px; }
-        .frame-container { width: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 600px; border: 1px solid #ccc; }
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input, button, textarea { width: 90%; margin: 10px; padding: 10px; font-size: 16px; }
+        .result { margin-top: 20px; text-align: left; max-width: 800px; margin: auto; }
+        .missing { color: red; font-weight: bold; }
+        .found { color: green; }
     </style>
 </head>
 <body>
 
-    <h2>Website UI & Responsiveness Tester</h2>
+    <h2>Website UI & Content Verifier</h2>
+
     <input type="text" id="websiteURL" placeholder="Enter website URL (e.g. https://example.com)">
-    <button onclick="loadWebsite()">Load Website</button>
+    <button onclick="fetchWebsiteContent()">Fetch Website Content</button>
 
-    <div class="viewport-buttons">
-        <button onclick="setViewport(1200, 800)">Desktop (1200px)</button>
-        <button onclick="setViewport(768, 1024)">Tablet (768px)</button>
-        <button onclick="setViewport(375, 812)">Mobile (375px)</button>
-    </div>
+    <h3>Paste Expected Content:</h3>
+    <textarea id="expectedContent" rows="5" placeholder="Paste document text here..."></textarea>
 
-    <div class="frame-container">
-        <iframe id="websiteFrame"></iframe>
+    <button onclick="compareContent()">Compare Content</button>
+
+    <div class="result">
+        <h3>Results:</h3>
+        <p id="comparisonResults"></p>
     </div>
 
     <script>
-        function loadWebsite() {
+        let websiteText = "";
+
+        async function fetchWebsiteContent() {
             let url = document.getElementById("websiteURL").value;
-            if (url) {
-                document.getElementById("websiteFrame").src = url;
-            } else {
+            if (!url) {
                 alert("Please enter a valid URL");
+                return;
+            }
+
+            try {
+                let response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                let data = await response.json();
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(data.contents, "text/html");
+
+                // Extract visible text
+                websiteText = doc.body.innerText;
+                alert("Website content fetched successfully!");
+            } catch (error) {
+                alert("Error fetching website content. Some websites block direct access.");
+                console.error(error);
             }
         }
 
-        function setViewport(width, height) {
-            let frame = document.getElementById("websiteFrame");
-            frame.style.width = width + "px";
-            frame.style.height = height + "px";
+        function compareContent() {
+            let expectedText = document.getElementById("expectedContent").value;
+            let resultElement = document.getElementById("comparisonResults");
+
+            if (!websiteText) {
+                alert("Please fetch the website content first!");
+                return;
+            }
+
+            let missingContent = expectedText.split("\n").filter(line => !websiteText.includes(line.trim()));
+
+            if (missingContent.length > 0) {
+                resultElement.innerHTML = "<span class='missing'>Missing Content:</span><br>" + missingContent.join("<br>");
+            } else {
+                resultElement.innerHTML = "<span class='found'>All expected content is found on the website!</span>";
+            }
         }
     </script>
 
