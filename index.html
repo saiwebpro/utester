@@ -63,6 +63,12 @@
             display: block;
             margin-top: 10px;
         }
+        .found {
+            color: green;
+        }
+        .not-found {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -92,41 +98,36 @@
                         
                         let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'Not found';
                         let metaDesc = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'Not found';
-                        let hTags = [];
-                        for (let i = 1; i <= 6; i++) {
-                            let tags = doc.querySelectorAll(`h${i}`);
-                            tags.forEach(tag => {
-                                hTags.push(`<p><strong>H${i}:</strong> ${tag.innerText}</p>`);
-                            });
-                        }
-                        let imgTags = doc.querySelectorAll('img');
-                        let imgWithoutAltCount = [...imgTags].filter(img => !img.alt).length;
-                        let textContent = doc.body.innerText.replace(/\s+/g, ' ').trim();
-                        let textLength = textContent.length;
-                        let htmlLength = data.contents.length;
-                        let textToHtmlRatio = ((textLength / htmlLength) * 100).toFixed(2) + '%';
-                        let favicon = doc.querySelector("link[rel='icon']") ? doc.querySelector("link[rel='icon']").href : 'Not found';
-                        let structuredData = doc.querySelector('script[type="application/ld+json"]') ? doc.querySelector('script[type="application/ld+json"]').innerText : 'Not found';
+                        let keywords = doc.querySelector('meta[name="keywords"]') ? doc.querySelector('meta[name="keywords"]').content : 'Not found';
+                        let canonical = doc.querySelector('link[rel="canonical"]') ? doc.querySelector('link[rel="canonical"]').href : 'Not found';
+                        let robots = doc.querySelector('meta[name="robots"]') ? doc.querySelector('meta[name="robots"]').content : 'Not found';
+                        let author = doc.querySelector('meta[name="author"]') ? doc.querySelector('meta[name="author"]').content : 'Not found';
+                        let publisher = doc.querySelector('meta[name="publisher"]') ? doc.querySelector('meta[name="publisher"]').content : 'Not found';
+                        let language = doc.querySelector('html').getAttribute('lang') || 'Not found';
+                        let sitemap = doc.querySelector("link[href*='sitemap.xml']") ? 'Found' : 'Not found';
+                        let googleAnalytics = data.contents.includes("www.google-analytics.com") ? 'Found' : 'Not found';
+                        let opengraph = doc.querySelector('meta[property="og:title"]') ? 'Found' : 'Not found';
                         
-                        let socialLinks = [];
-                        let socialPlatforms = ['facebook.com', 'twitter.com', 'linkedin.com', 'instagram.com', 'youtube.com'];
-                        doc.querySelectorAll('a').forEach(link => {
-                            if (socialPlatforms.some(platform => link.href.includes(platform))) {
-                                socialLinks.push(`<a href="${link.href}" target="_blank">${link.href}</a>`);
-                            }
+                        let overallScore = 0;
+                        let checks = [title, metaDesc, keywords, canonical, robots, author, publisher, language, sitemap, googleAnalytics, opengraph];
+                        checks.forEach(check => {
+                            if (check !== 'Not found') overallScore += 10;
                         });
 
                         $('#results').html(`
                             <h2>SEO Analysis Results</h2>
                             <p><strong>Title:</strong> ${title}</p>
                             <p><strong>Meta Description:</strong> ${metaDesc}</p>
-                            <p><strong>Heading Tags:</strong></p>
-                            ${hTags.length > 0 ? hTags.join('') : '<p>No headings found.</p>'}
-                            <p><strong>Images Without Alt Text:</strong> ${imgWithoutAltCount}</p>
-                            <p><strong>Text-to-HTML Ratio:</strong> ${textToHtmlRatio}</p>
-                            <p><strong>Favicon:</strong> ${favicon !== 'Not found' ? `<img src="${favicon}" alt="Favicon">` : 'Not found'}</p>
-                            <p><strong>Structured Data:</strong> <pre>${structuredData}</pre></p>
-                            <p><strong>Social Media Links:</strong> ${socialLinks.length > 0 ? socialLinks.join('<br>') : 'Not found'}</p>
+                            <p><strong>Keywords:</strong> ${keywords}</p>
+                            <p><strong>Canonical URL:</strong> ${canonical}</p>
+                            <p><strong>Robots Tag:</strong> ${robots}</p>
+                            <p><strong>Author:</strong> ${author}</p>
+                            <p><strong>Publisher:</strong> ${publisher}</p>
+                            <p><strong>Language:</strong> ${language}</p>
+                            <p><strong>Sitemap.xml:</strong> <span class="${sitemap === 'Found' ? 'found' : 'not-found'}">${sitemap}</span></p>
+                            <p><strong>Google Analytics:</strong> <span class="${googleAnalytics === 'Found' ? 'found' : 'not-found'}">${googleAnalytics}</span></p>
+                            <p><strong>Open Graph:</strong> <span class="${opengraph === 'Found' ? 'found' : 'not-found'}">${opengraph}</span></p>
+                            <h3>Overall Score: ${overallScore}/100</h3>
                         `);
                     })
                     .catch(() => {
