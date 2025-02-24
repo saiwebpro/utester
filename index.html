@@ -89,21 +89,41 @@
                         
                         let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'Not found';
                         let metaDesc = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'Not found';
-                        let h1Tags = doc.querySelectorAll('h1');
-                        let h1Count = h1Tags.length;
+                        let hTags = [];
+                        for (let i = 1; i <= 6; i++) {
+                            let tags = doc.querySelectorAll(`h${i}`);
+                            tags.forEach(tag => {
+                                hTags.push(`<p><strong>H${i}:</strong> ${tag.innerText}</p>`);
+                            });
+                        }
                         let imgTags = doc.querySelectorAll('img');
                         let imgWithoutAltCount = [...imgTags].filter(img => !img.alt).length;
+                        let textContent = doc.body.innerText.replace(/\s+/g, ' ').trim();
+                        let textLength = textContent.length;
+                        let htmlLength = data.contents.length;
+                        let textToHtmlRatio = ((textLength / htmlLength) * 100).toFixed(2) + '%';
                         let favicon = doc.querySelector("link[rel='icon']") ? doc.querySelector("link[rel='icon']").href : 'Not found';
                         let structuredData = doc.querySelector('script[type="application/ld+json"]') ? doc.querySelector('script[type="application/ld+json"]').innerText : 'Not found';
                         
+                        let socialLinks = [];
+                        let socialPlatforms = ['facebook.com', 'twitter.com', 'linkedin.com', 'instagram.com', 'youtube.com'];
+                        doc.querySelectorAll('a').forEach(link => {
+                            if (socialPlatforms.some(platform => link.href.includes(platform))) {
+                                socialLinks.push(`<a href="${link.href}" target="_blank">${link.href}</a>`);
+                            }
+                        });
+
                         $('#results').html(`
                             <h2>SEO Analysis Results</h2>
                             <p><strong>Title:</strong> ${title}</p>
                             <p><strong>Meta Description:</strong> ${metaDesc}</p>
-                            <p><strong>H1 Tags Count:</strong> ${h1Count}</p>
+                            <p><strong>Heading Tags:</strong></p>
+                            ${hTags.length > 0 ? hTags.join('') : '<p>No headings found.</p>'}
                             <p><strong>Images Without Alt Text:</strong> ${imgWithoutAltCount}</p>
+                            <p><strong>Text-to-HTML Ratio:</strong> ${textToHtmlRatio}</p>
                             <p><strong>Favicon:</strong> ${favicon !== 'Not found' ? `<img src="${favicon}" alt="Favicon">` : 'Not found'}</p>
                             <p><strong>Structured Data:</strong> <pre>${structuredData}</pre></p>
+                            <p><strong>Social Media Links:</strong> ${socialLinks.length > 0 ? socialLinks.join('<br>') : 'Not found'}</p>
                         `);
                     })
                     .catch(() => {
