@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website UI & Responsiveness Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        input, button { margin: 10px; padding: 10px; font-size: 16px; }
+        .viewport-buttons button { margin: 5px; padding: 10px; }
+        .frame-container { width: 100%; overflow: hidden; }
+        iframe { width: 100%; height: 600px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+    <h2>Website UI & Responsiveness Tester</h2>
+    <input type="text" id="websiteURL" placeholder="Enter website URL (e.g. https://example.com)">
+    <button onclick="loadWebsite()">Load Website</button>
+
+    <div class="viewport-buttons">
+        <button onclick="setViewport(1200, 800)">Desktop (1200px)</button>
+        <button onclick="setViewport(768, 1024)">Tablet (768px)</button>
+        <button onclick="setViewport(375, 812)">Mobile (375px)</button>
+    </div>
+
+    <div class="frame-container">
+        <iframe id="websiteFrame"></iframe>
+    </div>
+
+    <script>
+        function loadWebsite() {
+            let url = document.getElementById("websiteURL").value;
+            if (url) {
+                document.getElementById("websiteFrame").src = url;
+            } else {
+                alert("Please enter a valid URL");
+            }
+        }
+
+        function setViewport(width, height) {
+            let frame = document.getElementById("websiteFrame");
+            frame.style.width = width + "px";
+            frame.style.height = height + "px";
+        }
+    </script>
+
+</body>
+</html>
