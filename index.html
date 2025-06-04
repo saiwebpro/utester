@@ -39,12 +39,18 @@
     th {
       background: #eee;
     }
+    textarea {
+      width: 100%;
+      height: 200px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Typography & Link Inspector</h1>
-  <input type="text" id="urlInput" placeholder="Enter URL to inspect" />
-  <button onclick="loadAndInspect()">Inspect URL</button>
+  <p><strong>Note:</strong> Due to browser security, many live URLs won't load in iframes. Use the HTML Paste method below instead.</p>
+  <textarea id="htmlInput" placeholder="Paste full HTML here..."></textarea><br>
+  <button onclick="inspectFromHTML()">Inspect HTML</button>
 
   <h2>Typography Results</h2>
   <table id="typographyTable">
@@ -77,18 +83,15 @@
     <tbody></tbody>
   </table>
 
-  <iframe id="sandbox" style="display:none; width:100%; height:0;"></iframe>
-
   <script>
-    function loadAndInspect() {
-      const url = document.getElementById('urlInput').value;
-      if (!url) {
-        alert("Please enter a URL.");
+    function inspectFromHTML() {
+      const html = document.getElementById('htmlInput').value;
+      if (!html.trim()) {
+        alert("Please paste some HTML code.");
         return;
       }
-      const iframe = document.getElementById('sandbox');
-      iframe.onload = () => inspectContent(iframe.contentDocument);
-      iframe.src = url;
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      inspectContent(doc);
     }
 
     function inspectContent(doc) {
@@ -97,7 +100,7 @@
       typographyTable.innerHTML = '';
       tags.forEach(tag => {
         doc.querySelectorAll(tag).forEach(el => {
-          const style = doc.defaultView.getComputedStyle(el);
+          const style = doc.defaultView ? doc.defaultView.getComputedStyle(el) : window.getComputedStyle(el);
           const row = `<tr>
             <td>${tag}</td>
             <td>${el.textContent.trim().slice(0, 40)}</td>
