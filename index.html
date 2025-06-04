@@ -21,6 +21,11 @@
       border-radius: 5px;
       cursor: pointer;
     }
+    input[type="text"] {
+      padding: 8px;
+      width: 300px;
+      margin-right: 10px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -38,7 +43,8 @@
 </head>
 <body>
   <h1>Typography & Link Inspector</h1>
-  <button onclick="runInspection()">Run Inspection</button>
+  <input type="text" id="urlInput" placeholder="Enter URL to inspect" />
+  <button onclick="loadAndInspect()">Inspect URL</button>
 
   <h2>Typography Results</h2>
   <table id="typographyTable">
@@ -71,14 +77,27 @@
     <tbody></tbody>
   </table>
 
+  <iframe id="sandbox" style="display:none; width:100%; height:0;"></iframe>
+
   <script>
-    function runInspection() {
+    function loadAndInspect() {
+      const url = document.getElementById('urlInput').value;
+      if (!url) {
+        alert("Please enter a URL.");
+        return;
+      }
+      const iframe = document.getElementById('sandbox');
+      iframe.onload = () => inspectContent(iframe.contentDocument);
+      iframe.src = url;
+    }
+
+    function inspectContent(doc) {
       const tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'th', 'td'];
       const typographyTable = document.querySelector('#typographyTable tbody');
       typographyTable.innerHTML = '';
       tags.forEach(tag => {
-        document.querySelectorAll(tag).forEach(el => {
-          const style = getComputedStyle(el);
+        doc.querySelectorAll(tag).forEach(el => {
+          const style = doc.defaultView.getComputedStyle(el);
           const row = `<tr>
             <td>${tag}</td>
             <td>${el.textContent.trim().slice(0, 40)}</td>
@@ -93,7 +112,7 @@
 
       const linkTable = document.querySelector('#linkTable tbody');
       linkTable.innerHTML = '';
-      document.querySelectorAll('a, button').forEach(el => {
+      doc.querySelectorAll('a, button').forEach(el => {
         const row = `<tr>
           <td>${el.tagName.toLowerCase()}</td>
           <td>${el.id || 'N/A'}</td>
