@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Webpage Typography & Link Inspector</title>
   <style>
     body {
@@ -31,10 +31,13 @@
       border-collapse: collapse;
       margin-top: 20px;
     }
-    th, td {
+    th,
+    td {
       padding: 8px;
       border: 1px solid #ccc;
       font-size: 14px;
+      vertical-align: top;
+      word-break: break-word;
     }
     th {
       background: #eee;
@@ -43,13 +46,27 @@
       width: 100%;
       height: 200px;
       margin-top: 20px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    #hiddenContainer {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      visibility: hidden;
+      width: auto;
+      height: auto;
+      overflow: visible;
     }
   </style>
 </head>
 <body>
   <h1>Typography & Link Inspector</h1>
   <p><strong>Note:</strong> Due to browser security, many live URLs won't load in iframes. Use the HTML Paste method below instead.</p>
-  <textarea id="htmlInput" placeholder="Paste full HTML here..."></textarea><br>
+  <textarea
+    id="htmlInput"
+    placeholder="Paste full HTML here (including &lt;style&gt; if needed)..."
+  ></textarea><br />
   <button onclick="inspectFromHTML()">Inspect HTML</button>
 
   <h2>Typography Results</h2>
@@ -57,7 +74,7 @@
     <thead>
       <tr>
         <th>Tag</th>
-        <th>Text</th>
+        <th>Text (first 40 chars)</th>
         <th>Font Size</th>
         <th>Color (RGB / HEX)</th>
         <th>Line Height</th>
@@ -73,7 +90,7 @@
       <tr>
         <th>Tag</th>
         <th>ID</th>
-        <th>Text</th>
+        <th>Text (first 50 chars)</th>
         <th>Href</th>
         <th>Target</th>
         <th>Role</th>
@@ -87,47 +104,59 @@
   <table id="imageTable">
     <thead>
       <tr>
-        <th>Src</th>
+        <th>Image URL (src)</th>
         <th>Alt Text</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
+  <!-- Hidden container to render pasted content with CSS applied -->
+  <div id="hiddenContainer"></div>
+
   <script>
     function rgbToHex(rgb) {
       const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
-      return result ? "#" + result.slice(1).map(x => (+x).toString(16).padStart(2, '0')).join('') : rgb;
+      return result
+        ? "#" +
+            result
+              .slice(1)
+              .map((x) => (+x).toString(16).padStart(2, "0"))
+              .join("")
+        : rgb;
     }
 
     function inspectFromHTML() {
-      const html = document.getElementById('htmlInput').value;
+      const html = document.getElementById("htmlInput").value;
       if (!html.trim()) {
         alert("Please paste some HTML code.");
         return;
       }
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const entryContent = doc.querySelector('.entry-content');
+      // Parse the HTML string
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const entryContent = doc.querySelector(".entry-content");
       if (!entryContent) {
         alert("No .entry-content section found in the pasted HTML.");
         return;
       }
-      inspectContent(entryContent);
+      const hiddenContainer = document.getElementById("hiddenContainer");
+      // Insert the entry-content HTML into the hidden container
+      hiddenContainer.innerHTML = entryContent.outerHTML;
+      // Wait a tick for styles to apply
+      setTimeout(() => {
+        inspectContent(hiddenContainer);
+      }, 50);
     }
 
     function inspectContent(root) {
-      const tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'th', 'td'];
-      const typographyTable = document.querySelector('#typographyTable tbody');
-      typographyTable.innerHTML = '';
-      tags.forEach(tag => {
+      const tags = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "th", "td"];
+      const typographyTable = document.querySelector("#typographyTable tbody");
+      typographyTable.innerHTML = "";
+
+      tags.forEach((tag) => {
         const elements = root.querySelectorAll(tag);
-        elements.forEach(el => {
-          const temp = document.createElement('div');
-          temp.style.display = 'none';
-          temp.innerHTML = el.outerHTML;
-          document.body.appendChild(temp);
-          const styledEl = temp.querySelector(tag);
-          const computed = window.getComputedStyle(styledEl);
+        elements.forEach((el) => {
+          const computed = window.getComputedStyle(el);
           const rgb = computed.color;
           const hex = rgbToHex(rgb);
           const row = `<tr>
@@ -139,31 +168,32 @@
             <td>${computed.fontWeight}</td>
           </tr>`;
           typographyTable.innerHTML += row;
-          document.body.removeChild(temp);
         });
       });
 
-      const linkTable = document.querySelector('#linkTable tbody');
-      linkTable.innerHTML = '';
-      root.querySelectorAll('a, button').forEach(el => {
+      // Links and Buttons
+      const linkTable = document.querySelector("#linkTable tbody");
+      linkTable.innerHTML = "";
+      root.querySelectorAll("a, button").forEach((el) => {
         const row = `<tr>
           <td>${el.tagName.toLowerCase()}</td>
-          <td>${el.id || 'N/A'}</td>
+          <td>${el.id || "N/A"}</td>
           <td>${el.textContent.trim().slice(0, 50)}</td>
-          <td>${el.getAttribute('href') || 'N/A'}</td>
-          <td>${el.getAttribute('target') || '_self'}</td>
-          <td>${el.getAttribute('role') || 'N/A'}</td>
-          <td>${el.getAttribute('aria-label') || 'N/A'}</td>
+          <td>${el.getAttribute("href") || "N/A"}</td>
+          <td>${el.getAttribute("target") || "_self"}</td>
+          <td>${el.getAttribute("role") || "N/A"}</td>
+          <td>${el.getAttribute("aria-label") || "N/A"}</td>
         </tr>`;
         linkTable.innerHTML += row;
       });
 
-      const imageTable = document.querySelector('#imageTable tbody');
-      imageTable.innerHTML = '';
-      root.querySelectorAll('img').forEach(img => {
+      // Images
+      const imageTable = document.querySelector("#imageTable tbody");
+      imageTable.innerHTML = "";
+      root.querySelectorAll("img").forEach((img) => {
         const row = `<tr>
-          <td>${img.getAttribute('src') || 'N/A'}</td>
-          <td>${img.getAttribute('alt') || 'N/A'}</td>
+          <td>${img.getAttribute("src") || "N/A"}</td>
+          <td>${img.getAttribute("alt") || "N/A"}</td>
         </tr>`;
         imageTable.innerHTML += row;
       });
