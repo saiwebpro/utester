@@ -1,140 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>On-Page SEO Analysis Tool</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 400px;
-        }
-        h1 {
-            color: #333;
-        }
-        input {
-            width: 80%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            background: #28a745;
-            color: #fff;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #218838;
-        }
-        #results {
-            margin-top: 20px;
-            text-align: left;
-            overflow: hidden;
-            overflow-y: scroll;
-            max-height: 400px;
-        }
-        .error {
-            color: red;
-        }
-        img {
-            max-width: 100px;
-            max-height: 100px;
-            display: block;
-            margin-top: 10px;
-        }
-        .found {
-            color: green;
-        }
-        .not-found {
-            color: red;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webpage Typography & Link Inspector</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007acc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    th {
+      background: #eee;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>On-Page SEO Analysis Tool</h1>
-        <input type="text" id="urlInput" placeholder="Enter website URL">
-        <button id="analyzeBtn">Analyze</button>
-        <div id="results"></div>
-    </div>
+  <h1>Typography & Link Inspector</h1>
+  <button onclick="runInspection()">Run Inspection</button>
 
-    <script>
-        $(document).ready(function() {
-            $('#analyzeBtn').click(function() {
-                let url = $('#urlInput').val().trim();
-                if (url === '') {
-                    alert('Please enter a URL');
-                    return;
-                }
-                
-                $('#results').html('<p>Fetching data...</p>');
-                
-                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        let parser = new DOMParser();
-                        let doc = parser.parseFromString(data.contents, 'text/html');
-                        
-                        let title = doc.querySelector('title') ? doc.querySelector('title').innerText : 'Not found';
-                        let metaDesc = doc.querySelector('meta[name="description"]') ? doc.querySelector('meta[name="description"]').content : 'Not found';
-                        let keywords = doc.querySelector('meta[name="keywords"]') ? doc.querySelector('meta[name="keywords"]').content : 'Not found';
-                        let canonical = doc.querySelector('link[rel="canonical"]') ? doc.querySelector('link[rel="canonical"]').href : 'Not found';
-                        let robots = doc.querySelector('meta[name="robots"]') ? doc.querySelector('meta[name="robots"]').content : 'Not found';
-                        let author = doc.querySelector('meta[name="author"]') ? doc.querySelector('meta[name="author"]').content : 'Not found';
-                        let publisher = doc.querySelector('meta[name="publisher"]') ? doc.querySelector('meta[name="publisher"]').content : 'Not found';
-                        let language = doc.querySelector('html').getAttribute('lang') || 'Not found';
-                        let sitemap = doc.querySelector("link[href*='sitemap.xml']") ? 'Found' : 'Not found';
-                        let googleAnalytics = data.contents.includes("www.google-analytics.com") ? 'Found' : 'Not found';
-                        let opengraph = doc.querySelector('meta[property="og:title"]') ? 'Found' : 'Not found';
-                        
-                        let overallScore = 0;
-                        let checks = [title, metaDesc, keywords, canonical, robots, author, publisher, language, sitemap, googleAnalytics, opengraph];
-                        checks.forEach(check => {
-                            if (check !== 'Not found') overallScore += 10;
-                        });
+  <h2>Typography Results</h2>
+  <table id="typographyTable">
+    <thead>
+      <tr>
+        <th>Tag</th>
+        <th>Text</th>
+        <th>Font Size</th>
+        <th>Color</th>
+        <th>Line Height</th>
+        <th>Font Weight</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-                        $('#results').html(`
-                            <h2>SEO Analysis Results</h2>
-                            <p><strong>Title:</strong> ${title}</p>
-                            <p><strong>Meta Description:</strong> ${metaDesc}</p>
-                            <p><strong>Keywords:</strong> ${keywords}</p>
-                            <p><strong>Canonical URL:</strong> ${canonical}</p>
-                            <p><strong>Robots Tag:</strong> ${robots}</p>
-                            <p><strong>Author:</strong> ${author}</p>
-                            <p><strong>Publisher:</strong> ${publisher}</p>
-                            <p><strong>Language:</strong> ${language}</p>
-                            <p><strong>Sitemap.xml:</strong> <span class="${sitemap === 'Found' ? 'found' : 'not-found'}">${sitemap}</span></p>
-                            <p><strong>Google Analytics:</strong> <span class="${googleAnalytics === 'Found' ? 'found' : 'not-found'}">${googleAnalytics}</span></p>
-                            <p><strong>Open Graph:</strong> <span class="${opengraph === 'Found' ? 'found' : 'not-found'}">${opengraph}</span></p>
-                            <h3>Overall Score: ${overallScore}/100</h3>
-                        `);
-                    })
-                    .catch(() => {
-                        $('#results').html('<p class="error">Failed to fetch data. Make sure the URL is accessible.</p>');
-                    });
-            });
+  <h2>Links & Buttons</h2>
+  <table id="linkTable">
+    <thead>
+      <tr>
+        <th>Tag</th>
+        <th>ID</th>
+        <th>Text</th>
+        <th>Href</th>
+        <th>Target</th>
+        <th>Role</th>
+        <th>Aria-label</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    function runInspection() {
+      const tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'th', 'td'];
+      const typographyTable = document.querySelector('#typographyTable tbody');
+      typographyTable.innerHTML = '';
+      tags.forEach(tag => {
+        document.querySelectorAll(tag).forEach(el => {
+          const style = getComputedStyle(el);
+          const row = `<tr>
+            <td>${tag}</td>
+            <td>${el.textContent.trim().slice(0, 40)}</td>
+            <td>${style.fontSize}</td>
+            <td>${style.color}</td>
+            <td>${style.lineHeight}</td>
+            <td>${style.fontWeight}</td>
+          </tr>`;
+          typographyTable.innerHTML += row;
         });
-    </script>
+      });
+
+      const linkTable = document.querySelector('#linkTable tbody');
+      linkTable.innerHTML = '';
+      document.querySelectorAll('a, button').forEach(el => {
+        const row = `<tr>
+          <td>${el.tagName.toLowerCase()}</td>
+          <td>${el.id || 'N/A'}</td>
+          <td>${el.textContent.trim().slice(0, 50)}</td>
+          <td>${el.getAttribute('href') || 'N/A'}</td>
+          <td>${el.getAttribute('target') || '_self'}</td>
+          <td>${el.getAttribute('role') || 'N/A'}</td>
+          <td>${el.getAttribute('aria-label') || 'N/A'}</td>
+        </tr>`;
+        linkTable.innerHTML += row;
+      });
+    }
+  </script>
 </body>
 </html>
