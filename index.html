@@ -59,7 +59,7 @@
         <th>Tag</th>
         <th>Text</th>
         <th>Font Size</th>
-        <th>Color</th>
+        <th>Color (RGB / HEX)</th>
         <th>Line Height</th>
         <th>Font Weight</th>
       </tr>
@@ -83,7 +83,23 @@
     <tbody></tbody>
   </table>
 
+  <h2>Images</h2>
+  <table id="imageTable">
+    <thead>
+      <tr>
+        <th>Src</th>
+        <th>Alt Text</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <script>
+    function rgbToHex(rgb) {
+      const result = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(rgb);
+      return result ? "#" + result.slice(1).map(x => (+x).toString(16).padStart(2, '0')).join('') : rgb;
+    }
+
     function inspectFromHTML() {
       const html = document.getElementById('htmlInput').value;
       if (!html.trim()) {
@@ -110,12 +126,15 @@
           temp.style.display = 'none';
           temp.innerHTML = el.outerHTML;
           document.body.appendChild(temp);
-          const computed = window.getComputedStyle(temp.querySelector(tag));
+          const styledEl = temp.querySelector(tag);
+          const computed = window.getComputedStyle(styledEl);
+          const rgb = computed.color;
+          const hex = rgbToHex(rgb);
           const row = `<tr>
             <td>${tag}</td>
             <td>${el.textContent.trim().slice(0, 40)}</td>
             <td>${computed.fontSize}</td>
-            <td>${computed.color}</td>
+            <td>${rgb}<br>${hex}</td>
             <td>${computed.lineHeight}</td>
             <td>${computed.fontWeight}</td>
           </tr>`;
@@ -137,6 +156,16 @@
           <td>${el.getAttribute('aria-label') || 'N/A'}</td>
         </tr>`;
         linkTable.innerHTML += row;
+      });
+
+      const imageTable = document.querySelector('#imageTable tbody');
+      imageTable.innerHTML = '';
+      root.querySelectorAll('img').forEach(img => {
+        const row = `<tr>
+          <td>${img.getAttribute('src') || 'N/A'}</td>
+          <td>${img.getAttribute('alt') || 'N/A'}</td>
+        </tr>`;
+        imageTable.innerHTML += row;
       });
     }
   </script>
